@@ -67,7 +67,15 @@ async function main() {
     console.log(chalk.cyan(`Using Wallet Address: ${walletAddress}`));
     console.log(chalk.cyan(`Using Proxy: ${proxyUrl}`));
 
-    await reportUsage(walletAddress, proxyUrl);
+    try {
+      await reportUsage(walletAddress, proxyUrl);
+    } catch (error) {
+      console.error(
+        chalk.red(
+          `❌ Failed to process interaction for wallet ${walletAddress}: ${error.message}`
+        )
+      );
+    }
   }
 
   rl.close();
@@ -130,6 +138,7 @@ async function reportUsage(walletAddress, proxyUrl) {
     await submitInteraction(interactionId, proxyUrl);
   } catch (error) {
     console.error(chalk.red('❌ Error in reportUsage:'), error);
+    throw error; // Re-throw the error to handle it in the main loop
   }
 }
 
@@ -167,6 +176,7 @@ async function submitInteraction(interactionId, proxyUrl) {
     await fetchUserStats(data.wallet_address, proxyUrl);
   } catch (error) {
     console.error(chalk.red('❌ Error in submitInteraction:'), error);
+    throw error; // Re-throw the error to handle it in the main loop
   }
 }
 
@@ -183,15 +193,20 @@ async function fetchUserStats(walletAddress, proxyUrl) {
   };
 
   try {
+    console.log(chalk.cyan(`Fetching user stats for wallet: ${walletAddress}`));
     const agent = new HttpsProxyAgent(proxyUrl);
     const response = await fetch(statsUrl, {
       method: 'GET',
       headers: statsHeaders,
       agent,
     });
+
     if (!response.ok) {
+      const errorText = await response.text();
       throw new Error(
-        chalk.red(`Failed to fetch user stats: ${response.status}`)
+        chalk.red(
+          `Failed to fetch user stats: ${response.status}\nServer Response: ${errorText}`
+        )
       );
     }
 
@@ -203,6 +218,7 @@ async function fetchUserStats(walletAddress, proxyUrl) {
     console.log(chalk.blue(`Last Active: ${lastActive}`));
   } catch (error) {
     console.error(chalk.red('❌ Error fetching user stats:'), error);
+    throw error; // Re-throw the error to handle it in the main loop
   }
 }
 
