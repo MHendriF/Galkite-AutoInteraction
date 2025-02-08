@@ -14,6 +14,9 @@ function askQuestion(query) {
   return new Promise((resolve) => rl.question(query, resolve));
 }
 
+// Helper function to add delay
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 async function main() {
   cfonts.say('NT Exhaust', {
     font: 'block',
@@ -53,6 +56,10 @@ async function main() {
   let walletIndex = 0;
   let proxyIndex = 0;
 
+  // Rate limiting variables
+  const maxRequestsPerMinute = 200; // Maximum allowed requests per minute
+  const delayBetweenRequests = Math.ceil(60000 / maxRequestsPerMinute); // Delay in milliseconds
+
   for (let i = 1; i <= parseInt(numberOfInteractions); i++) {
     console.log(
       chalk.blue(`\nProcessing interaction ${i} of ${numberOfInteractions}`)
@@ -76,6 +83,9 @@ async function main() {
         )
       );
     }
+
+    // Add delay to respect rate limits
+    await delay(delayBetweenRequests);
   }
 
   rl.close();
