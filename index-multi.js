@@ -56,10 +56,6 @@ async function main() {
   let walletIndex = 0;
   let proxyIndex = 0;
 
-  // Rate limiting variables
-  const maxRequestsPerMinute = 200; // Maximum allowed requests per minute
-  const delayBetweenRequests = Math.ceil(60000 / maxRequestsPerMinute); // Delay in milliseconds
-
   for (let i = 1; i <= parseInt(numberOfInteractions); i++) {
     console.log(
       chalk.blue(`\nProcessing interaction ${i} of ${numberOfInteractions}`)
@@ -75,6 +71,24 @@ async function main() {
     console.log(chalk.cyan(`Using Proxy: ${proxyUrl}`));
 
     try {
+      // Add a fixed delay of 3 seconds between requests
+      console.log(
+        chalk.yellow('🕒 Waiting 3 seconds before making the next request...')
+      );
+      await delay(3000);
+
+      // Validate proxy by testing connectivity
+      console.log(chalk.cyan(`Testing proxy connectivity for ${proxyUrl}...`));
+      const isProxyValid = await testProxy(proxyUrl);
+      if (!isProxyValid) {
+        console.error(
+          chalk.red(
+            `❌ Proxy ${proxyUrl} is not working. Skipping this iteration...`
+          )
+        );
+        continue;
+      }
+
       await reportUsage(walletAddress, proxyUrl);
     } catch (error) {
       console.error(
@@ -83,9 +97,6 @@ async function main() {
         )
       );
     }
-
-    // Add delay to respect rate limits
-    await delay(delayBetweenRequests);
   }
 
   rl.close();
@@ -229,6 +240,37 @@ async function fetchUserStats(walletAddress, proxyUrl) {
   } catch (error) {
     console.error(chalk.red('❌ Error fetching user stats:'), error);
     throw error; // Re-throw the error to handle it in the main loop
+  }
+}
+
+// Function to test proxy connectivity
+async function testProxy(proxyUrl) {
+  try {
+    const agent = new HttpsProxyAgent(proxyUrl);
+    const response = await fetch('https://api.ipify.org?format=json', {
+      method: 'GET',
+      agent,
+    });
+
+    if (!response.ok) {
+      console.error(
+        chalk.red(`❌ Proxy test failed for ${proxyUrl}: ${response.status}`)
+      );
+      return false;
+    }
+
+    const data = await response.json();
+    console.log(
+      chalk.green(
+        `✅ Proxy test passed for ${proxyUrl}. Detected IP: ${data.ip}`
+      )
+    );
+    return true;
+  } catch (error) {
+    console.error(
+      chalk.red(`❌ Proxy test failed for ${proxyUrl}: ${error.message}`)
+    );
+    return false;
   }
 }
 
