@@ -27,7 +27,7 @@ async function processWallet(privateKey, proxyUrl) {
       },
     ];
 
-    const loops = 10; // Number of interactions per wallet
+    const loops = 30; // Number of interactions per wallet
     const agent = new HttpsProxyAgent(proxyUrl);
 
     for (let i = 1; i <= loops; i++) {
