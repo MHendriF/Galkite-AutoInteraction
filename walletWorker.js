@@ -78,21 +78,21 @@ async function processWallet(privateKey, proxyUrl) {
 
         // Simulate submitting interaction
         console.log(chalk.blue(`Submitting interaction (${interactionId})...`));
-        await delay(2000); // Simulate delay for submission
+        await delay(5 * 1000); // Simulate delay for submission
       } catch (error) {
         console.error(chalk.red(`❌ Error during loop ${i}:`, error.message));
         if (error.message.includes('Too many requests')) {
           console.log(
             chalk.yellow('⏳ Rate limit hit. Retrying in 1 minute...')
           );
-          await delay(60000); // Wait 1 minute before retrying
+          await delay(60 * 1000); // Wait 1 minute before retrying
         }
       }
 
       console.log(
         chalk.magenta('🕐 Waiting 5 seconds before next transaction...')
       );
-      await delay(5000); // Wait 5 seconds between transactions
+      await delay(15 * 1000); // Wait 15 seconds between transactions
     }
 
     parentPort.postMessage(
