@@ -1,6 +1,7 @@
 import { Worker } from 'worker_threads';
 import fs from 'fs';
 import chalk from 'chalk';
+import readline from 'readline';
 
 // Helper function to create a worker for each wallet
 function runWalletWorker(privateKey, proxyUrl) {
@@ -74,19 +75,57 @@ async function main() {
   }
 }
 
-// Function to run the main function every 12 hours
-function runEvery12Hours() {
-  const twelveHoursInMilliseconds = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
+// Function to display a countdown timer with a single line update
+function startCountdown(durationInMilliseconds) {
+  return new Promise((resolve) => {
+    let remainingTime = durationInMilliseconds;
 
-  // Run the main function immediately
-  main();
+    // Create readline interface to overwrite the same line in the terminal
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
 
-  // Set up an interval to run the main function every 12 hours
-  setInterval(() => {
-    console.log(chalk.yellow('⏳ Waiting 12 hours before running again...'));
-    main();
-  }, twelveHoursInMilliseconds);
+    const countdownInterval = setInterval(() => {
+      const hours = Math.floor(remainingTime / (1000 * 60 * 60));
+      const minutes = Math.floor(
+        (remainingTime % (1000 * 60 * 60)) / (1000 * 60)
+      );
+      const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+
+      // Overwrite the same line in the terminal
+      readline.clearLine(process.stdout, 0);
+      readline.cursorTo(process.stdout, 0);
+      process.stdout.write(
+        `⏳ Time remaining: ${hours}h ${minutes}m ${seconds}s`
+      );
+
+      if (remainingTime <= 0) {
+        clearInterval(countdownInterval);
+        rl.close(); // Close the readline interface
+
+        // Clear the last countdown line and print the final message
+        readline.clearLine(process.stdout, 0);
+        readline.cursorTo(process.stdout, 0);
+        console.log('\n⏳ Countdown finished! Running main again...');
+        resolve();
+      }
+
+      remainingTime -= 1000; // Decrease by 1 second
+    }, 1000); // Update every second
+  });
 }
 
-// Start the process
+async function runEvery12Hours() {
+  const twelveHoursInMilliseconds = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
+
+  while (true) {
+    console.log('⏳ Starting execution of main...');
+    await main(); // Run the main function
+
+    console.log('⏳ Waiting 12 hours before running main again...');
+    await startCountdown(twelveHoursInMilliseconds); // Start countdown after main finishes
+  }
+}
+
 runEvery12Hours();
