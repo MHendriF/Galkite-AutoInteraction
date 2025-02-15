@@ -92,7 +92,7 @@ async function processWallet(privateKey, proxyUrl) {
       console.log(
         chalk.magenta('🕐 Waiting 5 seconds before next transaction...')
       );
-      await delay(15 * 1000); // Wait 15 seconds between transactions
+      await delay(5 * 1000); // Wait 5 seconds between transactions
     }
 
     parentPort.postMessage(
