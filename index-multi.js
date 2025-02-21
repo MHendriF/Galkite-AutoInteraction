@@ -116,16 +116,17 @@ function startCountdown(durationInMilliseconds) {
   });
 }
 
-async function runEvery12Hours() {
-  const twelveHoursInMilliseconds = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
+async function runEveryXHours() {
+  const xHours = 8;
+  const xHoursInMilliseconds = xHours * 60 * 60 * 1000; // x hours in milliseconds
 
   while (true) {
     console.log('⏳ Starting execution of main...');
     await main(); // Run the main function
 
-    console.log('⏳ Waiting 12 hours before running main again...');
-    await startCountdown(twelveHoursInMilliseconds); // Start countdown after main finishes
+    console.log(`⏳ Waiting ${xHours} hours before running main again...`);
+    await startCountdown(xHoursInMilliseconds); // Start countdown after main finishes
   }
 }
 
-runEvery12Hours();
+runEveryXHours();
